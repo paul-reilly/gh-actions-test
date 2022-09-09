@@ -37,13 +37,13 @@ jobs:
       - uses: actions/checkout@v1
       - name: Build and install
         if: matrix.os == 'windows-latest'
-        - uses: msys2/setup-msys2@v2
-          run: |
-            new-item main
-            mkdir install-windows
-            cp main ./install-windows
-            gci -path ./install-windows -recurse |
-              compress-archive -destinationpath ./gruben-windows-amd64.zip
+        uses: msys2/setup-msys2@v2
+        run: |
+          new-item main
+          mkdir install-windows
+          cp main ./install-windows
+          gci -path ./install-windows -recurse |
+            compress-archive -destinationpath ./gruben-windows-amd64.zip
 
       - name: Build and install
         if: matrix.os == 'ubuntu-latest'
