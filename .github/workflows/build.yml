@@ -46,7 +46,7 @@ jobs:
 
       - name: Build and install
         if: matrix.os == 'windows-latest'
-      - shell: msys2 {0}
+        shell: msys2 {0}
         run: |
           make
           mkdir install-windows
