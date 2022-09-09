@@ -1,0 +1,79 @@
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    # Note this. We are going to use that in further jobs.
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+  build:
+    name: build
+    needs: create_release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        version: [branch@master]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build and install
+        if: matrix.os == 'windows-latest'
+        uses: msys2/setup-msys2@v2
+        run: |
+          new-item main
+          mkdir install-windows
+          cp main ./install-windows
+          gci -path ./install-windows -recurse |
+            compress-archive -destinationpath ./gruben-windows-amd64.zip
+
+      - name: Build and install
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          make
+          mkdir install-linux
+          cp main ./install-linux
+          zip -r gruben-linux-amd64.zip install-linux/*
+
+      - name: Upload windows release assets
+        uses: actions/upload-release-asset@v1
+        if: ${{ matrix.os == 'windows-latest' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+
+          asset_name: gruben-windows-amd64.zip
+          asset_path: ./gruben-windows-amd64.zip
+          asset_content_type: application/octet-stream
+
+      - name: Upload linux release assets
+        uses: actions/upload-release-asset@v1
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_name: gruben-linux-amd64.zip
+          asset_path: ./gruben-linux-amd64.zip
+          asset_content_type: application/octet-stream
+
+
