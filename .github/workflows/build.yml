@@ -35,15 +35,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Build and install
+
+      - name: Prepare Windows GHA
         if: matrix.os == 'windows-latest'
         uses: msys2/setup-msys2@v2
+        with:
+          install: >-
+            base-devel
+            git
+
+      - name: Build and install
+        if: matrix.os == 'windows-latest'
+      - shell: msys2 {0}
         run: |
-          new-item main
+          make
           mkdir install-windows
           cp main ./install-windows
-          gci -path ./install-windows -recurse |
-            compress-archive -destinationpath ./gruben-windows-amd64.zip
+          zip -r gruben-windows-amd64.zip install-windows/*
 
       - name: Build and install
         if: matrix.os == 'ubuntu-latest'
@@ -53,6 +61,7 @@ jobs:
           cp main ./install-linux
           zip -r gruben-linux-amd64.zip install-linux/*
 
+      #
       - name: Upload windows release assets
         uses: actions/upload-release-asset@v1
         if: ${{ matrix.os == 'windows-latest' }}
