@@ -43,6 +43,8 @@ jobs:
           install: >-
             base-devel
             git
+            gcc
+
 
       - name: Build and install
         if: matrix.os == 'windows-latest'
