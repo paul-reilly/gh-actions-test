@@ -44,6 +44,7 @@ jobs:
             base-devel
             git
             gcc
+            zip
 
 
       - name: Build and install
